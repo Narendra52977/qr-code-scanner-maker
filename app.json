@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "qr-scanner-generator",
+    "name": "QR Code Scanner & Generator",
     "slug": "qr-scanner-generator",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,7 +9,12 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow access to camera to scan QR codes."
+      },
+
+      "bundleIdentifier": "com.qrscan.generator"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +24,9 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": ["android.permission.CAMERA"],
+      "package": "com.qrscan.generator"
     },
     "web": {
       "output": "static",
@@ -27,6 +34,7 @@
     },
     "plugins": [
       "expo-router",
+
       [
         "expo-splash-screen",
         {
@@ -38,11 +46,44 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          },
+          
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "extraProguardRules": "-keep class com.google.android.gms.ads.** { *; }",
+            "packagingOptions": {
+              "resources": {
+                "excludes": ["META-INF/LICENSE*", "META-INF/*.kotlin_module"]
+              }
+            }
+          }
+        
+        }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3627128998964363~7329388734",
+          "iosAppId": "ca-app-pub-3627128998964363~2555218988",
+          "ios_app_id": "ca-app-pub-3627128998964363~2555218988"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c9015c4c-7cfa-4a93-a2cb-39e78b04ec05"
+      }
     }
   }
 }
