@@ -17,9 +17,14 @@ import { useAppSettings } from "@/context/ThemeContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
-import { Camera, CameraView, useCameraPermissions } from "expo-camera";
+import {
+  Camera,
+  CameraView,
+  useCameraPermissions
+} from "expo-camera";
 import * as Clipboard from "expo-clipboard";
 import * as ImagePicker from "expo-image-picker";
+import { useFocusEffect } from "expo-router";
 
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -33,25 +38,27 @@ export default function ScanScreen() {
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    if (isFocused){
+    if (isFocused) {
       if (autoFlash && isDark) {
         setFlash("on");
       } else if (autoFlash && !isDark) {
         setFlash("off");
       }
-      if(!autoFlash){
+      if (!autoFlash) {
         setFlash("off");
       }
     }
   }, [scheme, autoFlash, isFocused]);
 
-  useEffect(() => {
-    return () => {
-      setFlash("off");
-      setScanned(false);
-      setData(null);
-    };
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        setFlash("off");
+        setScanned(false);
+        setData(null);
+      };
+    }, [])
+  );
 
   // Auto-open URL if enabled
   const handleAutoOpenURL = (value: string) => {
@@ -107,8 +114,8 @@ export default function ScanScreen() {
   const pickImageAndScan = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 1,
+         mediaTypes: ["images"],
+         quality: 1,
       });
 
       if (result.canceled) return;
@@ -135,7 +142,6 @@ export default function ScanScreen() {
       Alert.alert("Error", "Failed to process image.");
     }
   };
-
 
   if (!permission) {
     return (
@@ -385,8 +391,8 @@ const styles = StyleSheet.create({
   overlayBottom: {
     flex: 0.25,
     backgroundColor: "rgba(0, 0, 0, 0.8)",
-    padding: 20,
-    paddingTop: 30,
+    padding: 10,
+    paddingTop: 10,
     alignItems: "center",
   },
 
