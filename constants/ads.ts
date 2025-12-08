@@ -21,9 +21,9 @@ import { Platform } from "react-native";
 
 export const Admob = {
   banner: Platform.select({
-    android: "ca-app-pub-3627128998964363/3801207266", // TEST Banner
+    android: "ca-app-pub-3627128998964363/9162781940", // TEST Banner
     ios: "ca-app-pub-3627128998964363/4401926779",
-    default: "ca-app-pub-3627128998964363/3801207266",
+    default: "ca-app-pub-3627128998964363/9162781940",
   }),
 
   interstitial: Platform.select({

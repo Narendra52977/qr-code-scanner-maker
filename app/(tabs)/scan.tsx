@@ -16,6 +16,7 @@ import {
 import { useAppSettings } from "@/context/ThemeContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
 import { Camera, CameraView, useCameraPermissions } from "expo-camera";
 import * as Clipboard from "expo-clipboard";
 import * as ImagePicker from "expo-image-picker";
@@ -29,14 +30,28 @@ export default function ScanScreen() {
 
   const scheme = useColorScheme();
   const { isDark } = useAppTheme();
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    if (autoFlash && isDark) {
-      setFlash("on");
-    } else if (autoFlash && !isDark) {
-      setFlash("off");
+    if (isFocused){
+      if (autoFlash && isDark) {
+        setFlash("on");
+      } else if (autoFlash && !isDark) {
+        setFlash("off");
+      }
+      if(!autoFlash){
+        setFlash("off");
+      }
     }
-  }, [scheme, autoFlash]);
+  }, [scheme, autoFlash, isFocused]);
+
+  useEffect(() => {
+    return () => {
+      setFlash("off");
+      setScanned(false);
+      setData(null);
+    };
+  }, []);
 
   // Auto-open URL if enabled
   const handleAutoOpenURL = (value: string) => {
