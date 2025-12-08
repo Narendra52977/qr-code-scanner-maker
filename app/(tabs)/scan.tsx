@@ -56,6 +56,7 @@ export default function ScanScreen() {
         setFlash("off");
         setScanned(false);
         setData(null);
+        // Camera.();
       };
     }, [])
   );
@@ -173,7 +174,7 @@ export default function ScanScreen() {
   return (
     <View style={styles.container}>
       {/* CAMERA VIEW */}
-      <CameraView
+     {isFocused && <CameraView
         enableTorch={flash === "on"}
         style={StyleSheet.absoluteFillObject}
         onBarcodeScanned={
@@ -186,7 +187,7 @@ export default function ScanScreen() {
               }
         }
         barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-      />
+      /> }
       {/* SEMI-TRANSPARENT OVERLAY */}
       <View style={styles.overlayContainer}>
         {/* Top overlay */}
