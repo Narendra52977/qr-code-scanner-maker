@@ -17,11 +17,7 @@ import { useAppSettings } from "@/context/ThemeContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
-import {
-  Camera,
-  CameraView,
-  useCameraPermissions
-} from "expo-camera";
+import { Camera, CameraView, useCameraPermissions } from "expo-camera";
 import * as Clipboard from "expo-clipboard";
 import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect } from "expo-router";
@@ -64,6 +60,14 @@ export default function ScanScreen() {
   // Auto-open URL if enabled
   const handleAutoOpenURL = (value: string) => {
     if (!autoOpenURL) return;
+     const isUPI = value.startsWith("upi://");
+
+     if (isUPI) {
+       Linking.openURL(value).catch(err => {
+         console.log("UPI open error:", err);
+       });
+       return;
+     }
 
     const isURL =
       value.startsWith("http://") ||
@@ -115,8 +119,8 @@ export default function ScanScreen() {
   const pickImageAndScan = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-         mediaTypes: ["images"],
-         quality: 1,
+        mediaTypes: ["images"],
+        quality: 1,
       });
 
       if (result.canceled) return;
@@ -174,20 +178,22 @@ export default function ScanScreen() {
   return (
     <View style={styles.container}>
       {/* CAMERA VIEW */}
-     {isFocused && <CameraView
-        enableTorch={flash === "on"}
-        style={StyleSheet.absoluteFillObject}
-        onBarcodeScanned={
-          scanned
-            ? undefined
-            : ({ data }) => {
-                setScanned(true);
-                setData(data);
-                handleAutoOpenURL(data);
-              }
-        }
-        barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-      /> }
+      {isFocused && (
+        <CameraView
+          enableTorch={flash === "on"}
+          style={StyleSheet.absoluteFillObject}
+          onBarcodeScanned={
+            scanned
+              ? undefined
+              : ({ data }) => {
+                  setScanned(true);
+                  setData(data);
+                  handleAutoOpenURL(data);
+                }
+          }
+          barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+        />
+      )}
       {/* SEMI-TRANSPARENT OVERLAY */}
       <View style={styles.overlayContainer}>
         {/* Top overlay */}
