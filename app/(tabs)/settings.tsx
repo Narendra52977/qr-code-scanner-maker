@@ -1,3 +1,4 @@
+import BannerAdComponent from "@/components/BannerAd";
 import { useAppSettings } from "@/context/ThemeContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,20 +11,13 @@ import {
   Switch,
   Text,
   TouchableOpacity,
-  View,
-  useColorScheme,
+  View
 } from "react-native";
 
 export default function Settings() {
-  // Toggles
-  // const [autoOpenURL, setAutoOpenURL] = useState(false);
-  // const [autoFlash, setAutoFlash] = useState(false);
-
- 
-  const { theme, setTheme, autoOpenURL, setAutoOpenURL, autoFlash, setAutoFlash } =
+ const { theme, setTheme, autoOpenURL, setAutoOpenURL, autoFlash, setAutoFlash } =
     useAppSettings();
 
-  const systemScheme = useColorScheme();
   const { isDark, colors } = useAppTheme();
 
   // Load saved settings
@@ -45,220 +39,234 @@ export default function Settings() {
   };
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: isDark ? "#080B16" : "#f4f4f4" }]}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* HEADER */}
-      <View style={styles.headerSection}>
-        <Text style={[styles.pageTitle, { color: isDark ? "#fff" : "#000" }]}>Settings</Text>
-        <Text style={[styles.pageSubtitle, { color: isDark ? "#999" : "#666" }]}>
-          Customize your experience
-        </Text>
-      </View>
-
-      {/* SCANNER SECTION */}
-      <View
-        style={[
-          styles.section,
-          { backgroundColor: isDark ? "rgba(0, 255, 136, 0.05)" : "rgba(0, 255, 136, 0.08)" },
-        ]}
+    <>
+      <BannerAdComponent />
+      <ScrollView
+        style={[styles.container, { backgroundColor: isDark ? "#080B16" : "#f4f4f4" }]}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.sectionHeader}>
-          <Ionicons name="scan" size={20} color="#00B366" />
-          <Text style={[styles.sectionTitle, { color: isDark ? "#fff" : "#000" }]}>Scanner</Text>
+        {/* HEADER */}
+        <View style={styles.headerSection}>
+          <Text style={[styles.pageTitle, { color: isDark ? "#fff" : "#000" }]}>Settings</Text>
+          <Text style={[styles.pageSubtitle, { color: isDark ? "#999" : "#666" }]}>
+            Customize your experience
+          </Text>
         </View>
 
-        {/* Auto-open URLs */}
-        <View style={[styles.settingRow, { borderBottomColor: isDark ? "#1F2937" : "#e0e0e0" }]}>
-          <View style={styles.settingContent}>
-            <Text style={[styles.settingLabel, { color: isDark ? "#fff" : "#000" }]}>
-              Auto-open URLs
-            </Text>
-            <Text style={[styles.settingDescription, { color: isDark ? "#666" : "#888" }]}>
-              Automatically open detected URLs
-            </Text>
+        {/* SCANNER SECTION */}
+        <View
+          style={[
+            styles.section,
+            { backgroundColor: isDark ? "rgba(0, 255, 136, 0.05)" : "rgba(0, 255, 136, 0.08)" },
+          ]}
+        >
+          <View style={styles.sectionHeader}>
+            <Ionicons name="scan" size={20} color="#00B366" />
+            <Text style={[styles.sectionTitle, { color: isDark ? "#fff" : "#000" }]}>Scanner</Text>
           </View>
-          <Switch
-            value={autoOpenURL}
-            onValueChange={v => {
-              setAutoOpenURL(v);
-              updateSetting("autoOpenURL", v);
-            }}
-            trackColor={{ false: "#ccc", true: "#00B366" }}
-            thumbColor={autoOpenURL ? "#00FF88" : "#f4f3f4"}
-          />
-        </View>
 
-        {/* Auto Flash in Dark */}
-        <View style={styles.settingRow}>
-          <View style={styles.settingContent}>
-            <Text style={[styles.settingLabel, { color: isDark ? "#fff" : "#000" }]}>
-              Auto Flash in Dark
-            </Text>
-            <Text style={[styles.settingDescription, { color: isDark ? "#666" : "#888" }]}>
-              Enable flash in low light conditions
-            </Text>
-          </View>
-          <Switch
-            value={autoFlash}
-            onValueChange={v => {
-              setAutoFlash(v);
-              updateSetting("autoFlash", v);
-            }}
-            trackColor={{ false: "#ccc", true: "#00B366" }}
-            thumbColor={autoFlash ? "#00FF88" : "#f4f3f4"}
-          />
-        </View>
-      </View>
-
-      {/* APPEARANCE SECTION */}
-      <View
-        style={[
-          styles.section,
-          { backgroundColor: isDark ? "rgba(0, 163, 255, 0.05)" : "rgba(0, 163, 255, 0.08)" },
-        ]}
-      >
-        <View style={styles.sectionHeader}>
-          <Ionicons name="contrast" size={20} color="#00A3FF" />
-          <Text style={[styles.sectionTitle, { color: isDark ? "#fff" : "#000" }]}>Appearance</Text>
-        </View>
-
-        <Text style={[styles.themeLabel, { color: isDark ? "#999" : "#666" }]}>Theme</Text>
-
-        <View style={styles.themeContainer}>
-          {[
-            { value: "auto" as const, label: "Auto", icon: "settings" },
-            { value: "light" as const, label: "Light", icon: "sunny" },
-            { value: "dark" as const, label: "Dark", icon: "moon" },
-          ].map(t => (
-            <TouchableOpacity
-              key={t.value}
-              onPress={() => {
-                setTheme(t.value);
-                updateSetting("theme", t.value);
+          {/* Auto-open URLs */}
+          <View style={[styles.settingRow, { borderBottomColor: isDark ? "#1F2937" : "#e0e0e0" }]}>
+            <View style={styles.settingContent}>
+              <Text style={[styles.settingLabel, { color: isDark ? "#fff" : "#000" }]}>
+                Auto-open URLs
+              </Text>
+              <Text style={[styles.settingDescription, { color: isDark ? "#666" : "#888" }]}>
+                Automatically open detected URLs
+              </Text>
+            </View>
+            <Switch
+              value={autoOpenURL}
+              onValueChange={v => {
+                setAutoOpenURL(v);
+                updateSetting("autoOpenURL", v);
               }}
-              style={[
-                styles.themeButton,
-                theme === t.value && {
-                  backgroundColor: isDark ? "#00B366" : "#00A3FF",
-                  borderColor: isDark ? "#00FF88" : "#00CCFF",
-                },
-                {
-                  borderColor: isDark ? "#1F2937" : "#e0e0e0",
-                },
-              ]}
-            >
-              <Ionicons
-                name={t.icon}
-                size={24}
-                color={theme === t.value ? (isDark ? "#000" : "#fff") : isDark ? "#666" : "#999"}
-              />
-              <Text
+              trackColor={{ false: "#ccc", true: "#00B366" }}
+              thumbColor={autoOpenURL ? "#00FF88" : "#f4f3f4"}
+            />
+          </View>
+
+          {/* Auto Flash in Dark */}
+          <View style={styles.settingRow}>
+            <View style={styles.settingContent}>
+              <Text style={[styles.settingLabel, { color: isDark ? "#fff" : "#000" }]}>
+                Auto Flash in Dark
+              </Text>
+              <Text style={[styles.settingDescription, { color: isDark ? "#666" : "#888" }]}>
+                Enable flash in low light conditions
+              </Text>
+            </View>
+            <Switch
+              value={autoFlash}
+              onValueChange={v => {
+                setAutoFlash(v);
+                updateSetting("autoFlash", v);
+              }}
+              trackColor={{ false: "#ccc", true: "#00B366" }}
+              thumbColor={autoFlash ? "#00FF88" : "#f4f3f4"}
+            />
+          </View>
+        </View>
+
+        {/* APPEARANCE SECTION */}
+        <View
+          style={[
+            styles.section,
+            { backgroundColor: isDark ? "rgba(0, 163, 255, 0.05)" : "rgba(0, 163, 255, 0.08)" },
+          ]}
+        >
+          <View style={styles.sectionHeader}>
+            <Ionicons name="contrast" size={20} color="#00A3FF" />
+            <Text style={[styles.sectionTitle, { color: isDark ? "#fff" : "#000" }]}>
+              Appearance
+            </Text>
+          </View>
+
+          <Text style={[styles.themeLabel, { color: isDark ? "#999" : "#666" }]}>Theme</Text>
+
+          <View style={styles.themeContainer}>
+            {[
+              { value: "auto" as const, label: "Auto", icon: "settings" },
+              { value: "light" as const, label: "Light", icon: "sunny" },
+              { value: "dark" as const, label: "Dark", icon: "moon" },
+            ].map(t => (
+              <TouchableOpacity
+                key={t.value}
+                onPress={() => {
+                  setTheme(t.value);
+                  updateSetting("theme", t.value);
+                }}
                 style={[
-                  styles.themeButtonText,
+                  styles.themeButton,
+                  theme === t.value && {
+                    backgroundColor: isDark ? "#00B366" : "#00A3FF",
+                    borderColor: isDark ? "#00FF88" : "#00CCFF",
+                  },
                   {
-                    color:
-                      theme === t.value ? (isDark ? "#000" : "#fff") : isDark ? "#fff" : "#333",
-                    fontWeight: theme === t.value ? "700" : "600",
+                    borderColor: isDark ? "#1F2937" : "#e0e0e0",
                   },
                 ]}
               >
-                {t.label}
+                <Ionicons
+                  name={t.icon}
+                  size={24}
+                  color={theme === t.value ? (isDark ? "#000" : "#fff") : isDark ? "#666" : "#999"}
+                />
+                <Text
+                  style={[
+                    styles.themeButtonText,
+                    {
+                      color:
+                        theme === t.value ? (isDark ? "#000" : "#fff") : isDark ? "#fff" : "#333",
+                      fontWeight: theme === t.value ? "700" : "600",
+                    },
+                  ]}
+                >
+                  {t.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* ABOUT SECTION */}
+        <View
+          style={[
+            styles.section,
+            { backgroundColor: isDark ? "rgba(100, 150, 200, 0.05)" : "rgba(100, 150, 200, 0.08)" },
+          ]}
+        >
+          <View style={styles.sectionHeader}>
+            <Ionicons name="information-circle" size={20} color="#8B5CF6" />
+            <Text style={[styles.sectionTitle, { color: isDark ? "#fff" : "#000" }]}>About</Text>
+          </View>
+
+          <View style={[styles.aboutItem, { borderBottomColor: isDark ? "#1F2937" : "#e0e0e0" }]}>
+            <Text style={[styles.aboutLabel, { color: isDark ? "#999" : "#666" }]}>Version</Text>
+            <Text style={[styles.aboutValue, { color: isDark ? "#fff" : "#000" }]}>1.0.0</Text>
+          </View>
+
+          <View style={[styles.aboutItem, { borderBottomColor: isDark ? "#1F2937" : "#e0e0e0" }]}>
+            <Text style={[styles.aboutLabel, { color: isDark ? "#999" : "#666" }]}>Developer</Text>
+            <Text style={[styles.aboutValue, { color: isDark ? "#fff" : "#000" }]}>
+              Narendra Balaga
+            </Text>
+          </View>
+        </View>
+
+        {/* SUPPORT SECTION */}
+        <View
+          style={[
+            styles.section,
+            { backgroundColor: isDark ? "rgba(220, 100, 100, 0.05)" : "rgba(220, 100, 100, 0.08)" },
+          ]}
+        >
+          <View style={styles.sectionHeader}>
+            <Ionicons name="help-circle" size={20} color="#EF4444" />
+            <Text style={[styles.sectionTitle, { color: isDark ? "#fff" : "#000" }]}>
+              Support & Links
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.linkRow, { borderBottomColor: isDark ? "#1F2937" : "#e0e0e0" }]}
+            onPress={() => Linking.openURL("mailto:qrcodeapphello@gmail.com")}
+          >
+            <View style={styles.linkContent}>
+              <Ionicons name="mail" size={18} color="#00A3FF" />
+              <Text style={[styles.linkText, { color: isDark ? "#fff" : "#000" }]}>
+                Contact Support
               </Text>
-            </TouchableOpacity>
-          ))}
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={isDark ? "#666" : "#999"} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.linkRow, { borderBottomColor: isDark ? "#1F2937" : "#e0e0e0" }]}
+            onPress={() =>
+              Linking.openURL("https://sites.google.com/view/qr-scanner-generator-privacy-p/home")
+            }
+          >
+            <View style={styles.linkContent}>
+              <Ionicons name="shield-checkmark" size={18} color="#00B366" />
+              <Text style={[styles.linkText, { color: isDark ? "#fff" : "#000" }]}>
+                Privacy Policy
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={isDark ? "#666" : "#999"} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.linkRow, { borderBottomColor: isDark ? "#1F2937" : "#e0e0e0" }]}
+            onPress={() =>
+              Linking.openURL("https://play.google.com/store/apps/details?id=com.qrscan.generator")
+            }
+          >
+            <View style={styles.linkContent}>
+              <Ionicons name="star" size={18} color="#FFB800" />
+              <Text style={[styles.linkText, { color: isDark ? "#fff" : "#000" }]}>
+                Rate This App
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={isDark ? "#666" : "#999"} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.linkRow}
+            onPress={() => Linking.openURL("https://forms.gle/3z3AitNeuraKZKkM8")}
+          >
+            <View style={styles.linkContent}>
+              <Ionicons name="chatbubble-ellipses-outline" size={18} color="#00A3FF" />
+              <Text style={[styles.linkText, { color: isDark ? "#fff" : "#000" }]}>
+                Feedback & Feature Requests
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={isDark ? "#666" : "#999"} />
+          </TouchableOpacity>
         </View>
-      </View>
 
-      {/* ABOUT SECTION */}
-      <View
-        style={[
-          styles.section,
-          { backgroundColor: isDark ? "rgba(100, 150, 200, 0.05)" : "rgba(100, 150, 200, 0.08)" },
-        ]}
-      >
-        <View style={styles.sectionHeader}>
-          <Ionicons name="information-circle" size={20} color="#8B5CF6" />
-          <Text style={[styles.sectionTitle, { color: isDark ? "#fff" : "#000" }]}>About</Text>
-        </View>
-
-        <View style={[styles.aboutItem, { borderBottomColor: isDark ? "#1F2937" : "#e0e0e0" }]}>
-          <Text style={[styles.aboutLabel, { color: isDark ? "#999" : "#666" }]}>Version</Text>
-          <Text style={[styles.aboutValue, { color: isDark ? "#fff" : "#000" }]}>1.0.0</Text>
-        </View>
-
-        <View style={[styles.aboutItem, { borderBottomColor: isDark ? "#1F2937" : "#e0e0e0" }]}>
-          <Text style={[styles.aboutLabel, { color: isDark ? "#999" : "#666" }]}>Developer</Text>
-          <Text style={[styles.aboutValue, { color: isDark ? "#fff" : "#000" }]}>
-            Narendra Balaga
-          </Text>
-        </View>
-      </View>
-
-      {/* SUPPORT SECTION */}
-      <View
-        style={[
-          styles.section,
-          { backgroundColor: isDark ? "rgba(220, 100, 100, 0.05)" : "rgba(220, 100, 100, 0.08)" },
-        ]}
-      >
-        <View style={styles.sectionHeader}>
-          <Ionicons name="help-circle" size={20} color="#EF4444" />
-          <Text style={[styles.sectionTitle, { color: isDark ? "#fff" : "#000" }]}>
-            Support & Links
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.linkRow, { borderBottomColor: isDark ? "#1F2937" : "#e0e0e0" }]}
-          onPress={() => Linking.openURL("mailto:qrcodeapphello@gmail.com")}
-        >
-          <View style={styles.linkContent}>
-            <Ionicons name="mail" size={18} color="#00A3FF" />
-            <Text style={[styles.linkText, { color: isDark ? "#fff" : "#000" }]}>
-              Contact Support
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={isDark ? "#666" : "#999"} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.linkRow, { borderBottomColor: isDark ? "#1F2937" : "#e0e0e0" }]}
-          onPress={() =>
-            Linking.openURL("https://sites.google.com/view/qr-scanner-generator-privacy-p/home")
-          }
-        >
-          <View style={styles.linkContent}>
-            <Ionicons name="shield-checkmark" size={18} color="#00B366" />
-            <Text style={[styles.linkText, { color: isDark ? "#fff" : "#000" }]}>
-              Privacy Policy
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={isDark ? "#666" : "#999"} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.linkRow}
-          onPress={() =>
-            Linking.openURL("https://play.google.com/store/apps/details?id=com.qrscan.generator")
-          }
-        >
-          <View style={styles.linkContent}>
-            <Ionicons name="star" size={18} color="#FFB800" />
-            <Text style={[styles.linkText, { color: isDark ? "#fff" : "#000" }]}>
-              Rate This App
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={isDark ? "#666" : "#999"} />
-        </TouchableOpacity>
-      </View>
-
-      {/* FOOTER */}
-      <Text style={[styles.footer, { color: isDark ? "#555" : "#999" }]}>
-        QR Code Scanner v1.0.0
-      </Text>
-    </ScrollView>
+        {/* FOOTER */}
+        <Text style={[styles.footer, { color: isDark ? "#555" : "#999" }]}>
+          QR Code Scanner v1.0.0
+        </Text>
+      </ScrollView>
+    </>
   );
 }
 

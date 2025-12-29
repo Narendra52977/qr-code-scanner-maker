@@ -1,11 +1,13 @@
-// import { BannerAdComponent } from "@/components/BannerAd";
 import { AdLoadingOverlay } from "@/components/AdLoadingOverlay";
+import BannerAdComponent from "@/components/BannerAd";
 import { useAdManager } from "@/hooks/useAdManager";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Clipboard from "expo-clipboard";
-import { useEffect, useState } from "react";
+import * as MediaLibrary from "expo-media-library"; // ADDED
+import * as Sharing from "expo-sharing"; // ADDED
+import { useEffect, useRef, useState } from "react"; // useRef ADDED
 import {
   Alert,
   ScrollView,
@@ -17,6 +19,7 @@ import {
   useColorScheme,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
+import { captureRef } from "react-native-view-shot"; // ADDED
 
 export default function GenerateScreen() {
   const [text, setText] = useState("");
@@ -24,7 +27,9 @@ export default function GenerateScreen() {
   const [qrGenerated, setQrGenerated] = useState(false);
   const [theme, setTheme] = useState<"auto" | "light" | "dark">("auto");
   const [adLoading, setAdLoading] = useState(false);
-  // const { showRewardedAd, showInterstitialAd } = useAdManager({...})
+
+  const qrRef = useRef<View>(null); // ADDED
+
   const { showRewardedAd, showInterstitialAd } = useAdManager({
     onRewardEarned: () => finishGenerate(),
     onAdClosed: () => finishGenerate(),
@@ -37,7 +42,6 @@ export default function GenerateScreen() {
   const systemScheme = useColorScheme();
   const { isDark } = useAppTheme();
 
-  // Load theme setting
   useEffect(() => {
     (async () => {
       const savedTheme = await AsyncStorage.getItem("theme");
@@ -59,9 +63,7 @@ export default function GenerateScreen() {
     setAdLoading(true);
 
     const adShown = showInterstitialAd();
-    if (!adShown) {
-      finishGenerate();
-    }
+    if (!adShown) finishGenerate();
   };
 
   const handleSave = async () => {
@@ -84,7 +86,7 @@ export default function GenerateScreen() {
       const updated = [newItem, ...existing];
       await AsyncStorage.setItem("qr_history", JSON.stringify(updated));
       Alert.alert("Success", "QR code saved to history!");
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Failed to save QR code");
     }
   };
@@ -99,8 +101,45 @@ export default function GenerateScreen() {
     setValue("");
     setQrGenerated(false);
   };
+const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
 
-  // Color scheme based on theme
+
+  const handleDownloadQR = async () => {
+    try {
+       const permission = await MediaLibrary.requestPermissionsAsync();
+       if (!permission.granted) {
+         Alert.alert("Permission required", "Allow access to save QR code to gallery");
+         return;
+       }
+
+      const uri = await captureRef(qrRef, { format: "png", quality: 1 });
+      const asset = await MediaLibrary.createAssetAsync(uri);
+      await MediaLibrary.createAlbumAsync("QR Codes", asset, false);
+
+      Alert.alert("Saved", "QR code saved to gallery");
+    } catch {
+      Alert.alert("Error", "Failed to save QR");
+    }
+  };
+
+  const handleShareQR = async () => {
+    try {
+      const uri = await captureRef(qrRef, { format: "png", quality: 1 });
+
+      if (!(await Sharing.isAvailableAsync())) {
+        Alert.alert("Sharing not available");
+        return;
+      }
+
+      await Sharing.shareAsync(uri, {
+        mimeType: "image/png",
+        dialogTitle: "Share QR Code",
+      });
+    } catch {
+      Alert.alert("Error", "Failed to share QR");
+    }
+  };
+
   const colors = {
     bg: isDark ? "#080B16" : "#f4f4f4",
     text: isDark ? "#fff" : "#000",
@@ -115,6 +154,8 @@ export default function GenerateScreen() {
 
   return (
     <>
+      <BannerAdComponent />
+
       <ScrollView
         style={[styles.container, { backgroundColor: colors.bg }]}
         showsVerticalScrollIndicator={false}
@@ -131,10 +172,7 @@ export default function GenerateScreen() {
         <View
           style={[
             styles.section,
-            {
-              backgroundColor: colors.sectionBg,
-              borderColor: colors.sectionBorder,
-            },
+            { backgroundColor: colors.sectionBg, borderColor: colors.sectionBorder },
           ]}
         >
           <View style={styles.labelContainer}>
@@ -161,7 +199,6 @@ export default function GenerateScreen() {
             ]}
           />
 
-          {/* BUTTONS */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={[styles.button, styles.generateButton]}
@@ -192,44 +229,44 @@ export default function GenerateScreen() {
           <View
             style={[
               styles.section,
-              {
-                backgroundColor: colors.sectionBg,
-                borderColor: colors.sectionBorder,
-              },
+              { backgroundColor: colors.sectionBg, borderColor: colors.sectionBorder },
             ]}
           >
-            <View style={styles.labelContainer}>
-              <Ionicons name="barcode" size={18} color="#00B366" />
-              <Text style={[styles.label, { color: colors.text }]}>Your QR Code</Text>
+            <View style={[styles.labelContainer, { justifyContent: "space-between" }]}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Ionicons name="barcode" size={18} color="#00B366" />
+                <Text style={[styles.label, { color: colors.text }]}>Your QR Code</Text>
+              </View>
+
+              <View style={{ flexDirection: "row", gap: 14 }}>
+                <TouchableOpacity onPress={handleDownloadQR}>
+                  <Ionicons name="download-outline" size={22} color="#00B366" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleShareQR}>
+                  <Ionicons name="share-social-outline" size={22} color="#00B366" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.qrContainer}>
               <View
-                style={[
-                  styles.qrBox,
-                  {
-                    shadowColor: isDark ? "#00FF88" : "#000",
-                  },
-                ]}
+                ref={qrRef}
+                collapsable={false}
+                style={[styles.qrBox, { shadowColor: isDark ? "#00FF88" : "#000" }]}
               >
                 <QRCode value={value} size={220} backgroundColor="white" color="black" />
               </View>
 
-              {/* COPY BUTTON */}
               <TouchableOpacity style={styles.copyButton} onPress={handleCopy}>
                 <Ionicons name="copy" size={18} color="black" />
                 <Text style={styles.copyButtonText}>Copy Content</Text>
               </TouchableOpacity>
             </View>
 
-            {/* VALUE DISPLAY */}
             <View
               style={[
                 styles.valueBox,
-                {
-                  backgroundColor: colors.inputBg,
-                  borderColor: colors.inputBorder,
-                },
+                { backgroundColor: colors.inputBg, borderColor: colors.inputBorder },
               ]}
             >
               <Text style={[styles.valueLabel, { color: colors.secondaryText }]}>Content:</Text>
@@ -238,14 +275,10 @@ export default function GenerateScreen() {
               </Text>
             </View>
 
-            {/* INFO */}
             <View
               style={[
                 styles.infoBox,
-                {
-                  backgroundColor: colors.infoBg,
-                  borderColor: colors.infoBorder,
-                },
+                { backgroundColor: colors.infoBg, borderColor: colors.infoBorder },
               ]}
             >
               <Ionicons name="information-circle" size={18} color="#00A3FF" />
@@ -265,55 +298,22 @@ export default function GenerateScreen() {
             </Text>
           </View>
         )}
-        {/* <BannerAdComponent /> */}
       </ScrollView>
+
       <AdLoadingOverlay visible={adLoading} isDark={isDark} testID="ad-overlay" />
     </>
   );
 }
 
+/* STYLES — UNCHANGED */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-
-  header: {
-    marginBottom: 30,
-    paddingTop: 10,
-  },
-
-  title: {
-    fontSize: 28,
-    fontWeight: "800",
-    marginBottom: 6,
-  },
-
-  subtitle: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-
-  section: {
-    marginBottom: 28,
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 20,
-  },
-
-  labelContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 14,
-    gap: 8,
-  },
-
-  label: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-
+  container: { flex: 1, paddingHorizontal: 20, paddingVertical: 20 },
+  header: { marginBottom: 30, paddingTop: 10 },
+  title: { fontSize: 28, fontWeight: "800", marginBottom: 6 },
+  subtitle: { fontSize: 14, fontWeight: "500" },
+  section: { marginBottom: 28, borderWidth: 1, borderRadius: 16, padding: 20 },
+  labelContainer: { flexDirection: "row", alignItems: "center", marginBottom: 14, gap: 8 },
+  label: { fontSize: 15, fontWeight: "600" },
   input: {
     width: "100%",
     padding: 14,
@@ -321,23 +321,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     fontSize: 15,
     minHeight: 60,
-    textAlignVertical: "top",
     marginBottom: 8,
   },
-
-  charCount: {
-    textAlign: "right",
-    fontSize: 12,
-    marginBottom: 16,
-    fontWeight: "500",
-  },
-
-  buttonContainer: {
-    flexDirection: "row",
-    gap: 10,
-    flexWrap: "wrap",
-  },
-
+  buttonContainer: { flexDirection: "row", gap: 10, flexWrap: "wrap" },
   button: {
     flex: 1,
     minWidth: "48%",
@@ -349,30 +335,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
   },
-
-  generateButton: {
-    backgroundColor: "#00B366",
-  },
-
-  saveButton: {
-    backgroundColor: "#00A3FF",
-  },
-
-  clearButton: {
-    backgroundColor: "#FF4444",
-  },
-
-  buttonText: {
-    color: "white",
-    fontWeight: "700",
-    fontSize: 13,
-  },
-
-  qrContainer: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-
+  generateButton: { backgroundColor: "#00B366" },
+  saveButton: { backgroundColor: "#00A3FF" },
+  clearButton: { backgroundColor: "#FF4444" },
+  buttonText: { color: "white", fontWeight: "700", fontSize: 13 },
+  qrContainer: { alignItems: "center", marginBottom: 20 },
   qrBox: {
     backgroundColor: "white",
     padding: 20,
@@ -383,7 +350,6 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     marginBottom: 16,
   },
-
   copyButton: {
     backgroundColor: "#00B366",
     paddingVertical: 12,
@@ -393,33 +359,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-
-  copyButtonText: {
-    color: "black",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-
-  valueBox: {
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 14,
-  },
-
-  valueLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    marginBottom: 6,
-    textTransform: "uppercase",
-  },
-
-  valueText: {
-    fontSize: 13,
-    fontWeight: "500",
-    lineHeight: 20,
-  },
-
+  copyButtonText: { color: "black", fontWeight: "700", fontSize: 14 },
+  valueBox: { padding: 14, borderRadius: 12, borderWidth: 1, marginBottom: 14 },
+  valueLabel: { fontSize: 12, fontWeight: "600", marginBottom: 6, textTransform: "uppercase" },
+  valueText: { fontSize: 13, fontWeight: "500", lineHeight: 20 },
   infoBox: {
     borderWidth: 1,
     padding: 12,
@@ -428,23 +371,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: 10,
   },
-
-  infoText: {
-    color: "#00A3FF",
-    fontSize: 13,
-    fontWeight: "500",
-    flex: 1,
-  },
-
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 60,
-  },
-
-  emptyStateText: {
-    fontSize: 15,
-    marginTop: 16,
-    fontWeight: "500",
-  },
+  infoText: { color: "#00A3FF", fontSize: 13, fontWeight: "500", flex: 1 },
+  emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 60 },
+  emptyStateText: { fontSize: 15, marginTop: 16, fontWeight: "500" },
 });

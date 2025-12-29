@@ -13,14 +13,21 @@ import {
   useColorScheme,
 } from "react-native";
 
+import BannerAdComponent from "@/components/BannerAd";
 import { useAppSettings } from "@/context/ThemeContext";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
 import { Camera, CameraView, useCameraPermissions } from "expo-camera";
 import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const triggerScanHaptic = () => {
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+};
 
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -32,6 +39,7 @@ export default function ScanScreen() {
   const scheme = useColorScheme();
   const { isDark } = useAppTheme();
   const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (isFocused) {
@@ -60,14 +68,14 @@ export default function ScanScreen() {
   // Auto-open URL if enabled
   const handleAutoOpenURL = (value: string) => {
     if (!autoOpenURL) return;
-     const isUPI = value.startsWith("upi://");
+    const isUPI = value.startsWith("upi://");
 
-     if (isUPI) {
-       Linking.openURL(value).catch(err => {
-         console.log("UPI open error:", err);
-       });
-       return;
-     }
+    if (isUPI) {
+      Linking.openURL(value).catch(err => {
+        console.log("UPI open error:", err);
+      });
+      return;
+    }
 
     const isURL =
       value.startsWith("http://") ||
@@ -139,6 +147,7 @@ export default function ScanScreen() {
 
       setScanned(true);
       setData(qrValue);
+      triggerScanHaptic();
 
       // Auto-open URL if enabled
       handleAutoOpenURL(qrValue);
@@ -176,117 +185,126 @@ export default function ScanScreen() {
   });
 
   return (
-    <View style={styles.container}>
-      {/* CAMERA VIEW */}
-      {isFocused && (
-        <CameraView
-          enableTorch={flash === "on"}
-          style={StyleSheet.absoluteFillObject}
-          onBarcodeScanned={
-            scanned
-              ? undefined
-              : ({ data }) => {
-                  setScanned(true);
-                  setData(data);
-                  handleAutoOpenURL(data);
-                }
-          }
-          barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-        />
-      )}
-      {/* SEMI-TRANSPARENT OVERLAY */}
-      <View style={styles.overlayContainer}>
-        {/* Top overlay */}
-        <View style={styles.overlayTop} />
+    <>
+      <BannerAdComponent />
+      <View style={styles.container}>
+        {/* CAMERA VIEW */}
+        {isFocused && (
+          <CameraView
+            enableTorch={flash === "on"}
+            style={StyleSheet.absoluteFillObject}
+            onBarcodeScanned={
+              scanned
+                ? undefined
+                : ({ data }) => {
+                    setScanned(true);
+                    triggerScanHaptic();
+                    setData(data);
+                    handleAutoOpenURL(data);
+                  }
+            }
+            barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+          />
+        )}
+        {/* SEMI-TRANSPARENT OVERLAY */}
+        <View style={styles.overlayContainer}>
+          {/* Top overlay */}
+          <View style={styles.overlayTop} />
 
-        {/* Middle section with scan box */}
-        <View style={styles.middleSection}>
-          {/* Left overlay */}
-          <View style={styles.overlayLeft} />
+          {/* Middle section with scan box */}
+          <View style={styles.middleSection}>
+            {/* Left overlay */}
+            <View style={styles.overlayLeft} />
 
-          {/* SCAN BOX */}
-          <View style={styles.scanBoxContainer}>
-            <View style={styles.cornerTopLeft} />
-            <View style={styles.cornerTopRight} />
-            <View style={styles.cornerBottomLeft} />
-            <View style={styles.cornerBottomRight} />
+            {/* SCAN BOX */}
+            <View style={styles.scanBoxContainer}>
+              <View style={styles.cornerTopLeft} />
+              <View style={styles.cornerTopRight} />
+              <View style={styles.cornerBottomLeft} />
+              <View style={styles.cornerBottomRight} />
 
-            <Animated.View
-              style={[
-                styles.scanLine,
-                {
-                  transform: [{ translateY }],
-                },
-              ]}
-            />
+              <Animated.View
+                style={[
+                  styles.scanLine,
+                  {
+                    transform: [{ translateY }],
+                  },
+                ]}
+              />
+            </View>
+
+            {/* Right overlay */}
+            <View style={styles.overlayRight} />
+          </View>
+          <View style={styles.overlayTop}>
+            <Text style={styles.heading}>Position QR Code</Text>
           </View>
 
-          {/* Right overlay */}
-          <View style={styles.overlayRight} />
-        </View>
+          {/* Bottom overlay */}
+          {/* <ScrollView> */}
+          {(scanned || data) && (
+            <View style={[styles.bottomPanel, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+              {/* HEADER TEXT */}
 
-        {/* Bottom overlay */}
-        <View style={styles.overlayBottom}>
-          {/* HEADER TEXT */}
-          <Text style={styles.heading}>Position QR Code</Text>
+              {/* RESULT BOX */}
+              {data && (
+                <View style={styles.resultBox}>
+                  <View style={styles.resultContent}>
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={24}
+                      color="#00FF88"
+                      style={{ marginRight: 10 }}
+                    />
+                    <Text style={styles.resultText} numberOfLines={2}>
+                      {data}
+                    </Text>
+                  </View>
 
-          {/* RESULT BOX */}
-          {data && (
-            <View style={styles.resultBox}>
-              <View style={styles.resultContent}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={24}
-                  color="#00FF88"
-                  style={{ marginRight: 10 }}
-                />
-                <Text style={styles.resultText} numberOfLines={2}>
-                  {data}
-                </Text>
-              </View>
+                  <TouchableOpacity style={styles.copyButton} onPress={copyToClipboard}>
+                    <Ionicons name="copy" size={18} color="black" />
+                    <Text style={styles.copyButtonText}>Copy</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
 
-              <TouchableOpacity style={styles.copyButton} onPress={copyToClipboard}>
-                <Ionicons name="copy" size={18} color="black" />
-                <Text style={styles.copyButtonText}>Copy</Text>
-              </TouchableOpacity>
+              {/* SCAN AGAIN */}
+              {scanned && (
+                <TouchableOpacity
+                  style={styles.scanAgainButton}
+                  onPress={() => {
+                    setScanned(false);
+                    setData(null);
+                  }}
+                >
+                  <Text style={styles.scanAgainButtonText}>Scan Again</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
-
-          {/* SCAN AGAIN */}
-          {scanned && (
-            <TouchableOpacity
-              style={styles.scanAgainButton}
-              onPress={() => {
-                setScanned(false);
-                setData(null);
-              }}
-            >
-              <Text style={styles.scanAgainButtonText}>Scan Again</Text>
-            </TouchableOpacity>
-          )}
         </View>
+        <TouchableOpacity
+          onPress={pickImageAndScan}
+          style={[styles.galleryButton, { backgroundColor: "rgba(0,0,0,0.4)" }]}
+        >
+          <Ionicons name="image-outline" size={24} color="#fff" />
+        </TouchableOpacity>
+        {/* FLASH BUTTON - TOP RIGHT */}
+        <TouchableOpacity
+          onPress={() => setFlash(flash === "off" ? "on" : "off")}
+          style={[
+            styles.flashButton,
+            { backgroundColor: flash === "on" ? "rgba(0,255,136,0.3)" : "rgba(0,0,0,0.4)" },
+          ]}
+        >
+          <Ionicons
+            name={flash === "on" ? "flashlight" : "flashlight-outline"}
+            size={24}
+            color={flash === "on" ? "#00FF88" : "#fff"}
+          />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        onPress={pickImageAndScan}
-        style={[styles.galleryButton, { backgroundColor: "rgba(0,0,0,0.4)" }]}
-      >
-        <Ionicons name="image-outline" size={24} color="#fff" />
-      </TouchableOpacity>
-      {/* FLASH BUTTON - TOP RIGHT */}
-      <TouchableOpacity
-        onPress={() => setFlash(flash === "off" ? "on" : "off")}
-        style={[
-          styles.flashButton,
-          { backgroundColor: flash === "on" ? "rgba(0,255,136,0.3)" : "rgba(0,0,0,0.4)" },
-        ]}
-      >
-        <Ionicons
-          name={flash === "on" ? "flashlight" : "flashlight-outline"}
-          size={24}
-          color={flash === "on" ? "#00FF88" : "#fff"}
-        />
-      </TouchableOpacity>
-    </View>
+    </>
   );
 }
 
@@ -370,7 +388,16 @@ const styles = StyleSheet.create({
     borderColor: "#00FF88",
     borderBottomLeftRadius: 20,
   },
-
+  bottomPanel: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.85)",
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    alignItems: "center",
+  },
   cornerBottomRight: {
     position: "absolute",
     bottom: 0,
@@ -408,6 +435,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#fff",
     marginBottom: 10,
+    marginTop: 20,
     textAlign: "center",
   },
 

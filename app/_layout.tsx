@@ -7,7 +7,6 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 
-import BannerAdComponent from "@/components/BannerAd";
 import { AppSettingsProvider } from "@/context/ThemeContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { View } from "react-native";
@@ -36,7 +35,7 @@ export default function RootLayout() {
           <StatusBar translucent style={colorScheme === "dark" ? "light" : "dark"} />
 
           <NavigationThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-            <BannerAdComponent />
+           
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen
