@@ -13,7 +13,6 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Allow access to camera to scan QR codes."
       },
-
       "bundleIdentifier": "com.qrscan.generator"
     },
     "android": {

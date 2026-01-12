@@ -29,6 +29,11 @@ const triggerScanHaptic = () => {
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 };
 
+const isNightTime = () => {
+  const hour = new Date().getHours();
+  return hour >= 18 || hour < 6; 
+};
+
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
@@ -43,7 +48,8 @@ export default function ScanScreen() {
 
   useEffect(() => {
     if (isFocused) {
-      if (autoFlash && isDark) {
+      const night = isNightTime();
+      if (autoFlash && (isDark || night)) {
         setFlash("on");
       } else if (autoFlash && !isDark) {
         setFlash("off");

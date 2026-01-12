@@ -12,7 +12,7 @@ const BannerAdComponent: React.FC<BannerAdComponentProps> = ({ style }) => {
       <BannerAd
         unitId={Admob.banner}
         size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-        onAdLoaded={() => console.log("Banner ad loaded")}
+        onAdLoaded={() => {}}
         onAdFailedToLoad={error => console.error("Banner ad error:", error)}
       />
     </View>

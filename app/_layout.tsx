@@ -38,10 +38,6 @@ export default function RootLayout() {
            
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="privacy-modal"
-                options={{ presentation: "modal", headerShown: false }}
-              />
             </Stack>
           </NavigationThemeProvider>
         </View>
